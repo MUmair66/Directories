@@ -1,0 +1,53 @@
+import Image from "next/image";
+import { initials } from "@/lib/text";
+import { cn } from "@/lib/utils";
+
+const PALETTE = ["#2563EB", "#1E3A8A", "#0E7490", "#7C3AED", "#BE185D", "#B45309", "#15803D", "#0F766E"];
+
+function colorFor(name: string) {
+  let h = 0;
+  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return PALETTE[h % PALETTE.length];
+}
+
+/** Logo, or a generated initials avatar in brand colors. Never a blank image box. */
+export function BusinessAvatar({ name, src, size = 56, className, priority }: { name: string; src?: string | null; size?: number; className?: string; priority?: boolean }) {
+  if (src) {
+    return (
+      <Image
+        src={src}
+        alt={`${name} logo`}
+        width={size}
+        height={size}
+        priority={priority}
+        className={cn("shrink-0 rounded-lg border border-border bg-card object-cover", className)}
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+  return (
+    <span
+      role="img"
+      aria-label={`${name} logo`}
+      className={cn("inline-flex shrink-0 select-none items-center justify-center rounded-lg font-heading font-bold text-white", className)}
+      style={{ width: size, height: size, background: colorFor(name), fontSize: Math.round(size * 0.38) }}
+    >
+      {initials(name)}
+    </span>
+  );
+}
+
+/** Banner/thumbnail with an initials fallback panel instead of an empty box. */
+export function BusinessCover({ name, src, className, sizes, priority }: { name: string; src?: string | null; className?: string; sizes?: string; priority?: boolean }) {
+  return (
+    <div className={cn("relative overflow-hidden bg-muted", className)}>
+      {src ? (
+        <Image src={src} alt={`${name} photo`} fill sizes={sizes ?? "(max-width: 768px) 100vw, 33vw"} priority={priority} className="object-cover" />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${colorFor(name)}, #1E3A8A)` }}>
+          <span className="font-heading text-4xl font-bold text-white/90">{initials(name)}</span>
+        </div>
+      )}
+    </div>
+  );
+}
