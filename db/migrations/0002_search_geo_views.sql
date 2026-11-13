@@ -39,6 +39,13 @@ CREATE INDEX businesses_zip_idx ON businesses (zip) WHERE status = 'approved' AN
 CREATE INDEX businesses_public_rank_idx ON businesses (featured DESC, avg_rating DESC, review_count DESC)
   WHERE status = 'approved' AND deleted_at IS NULL;--> statement-breakpoint
 
+-- Typo tolerance: the `<%` operator (word similarity, GIN-indexed) defaults to 0.6, which misses
+-- common one-letter typos ("plumer" vs "plumbers" = 0.57). 0.5 catches them; ts_rank + similarity
+-- still order exact matches first. Set per database so every pooled connection inherits it.
+DO $$ BEGIN
+  EXECUTE format('ALTER DATABASE %I SET pg_trgm.word_similarity_threshold = 0.5', current_database());
+END $$;--> statement-breakpoint
+
 -- ─── Denormalized search inputs (feed the generated search_vector) ───────────
 CREATE OR REPLACE FUNCTION refresh_business_search(p_id uuid) RETURNS void LANGUAGE sql AS $$
   UPDATE businesses b SET

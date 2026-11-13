@@ -3,6 +3,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
 import { db, schema as s } from "@/lib/db";
 import { LISTINGS_LIFE, tags } from "@/lib/cache-tags";
+import { sanitizeHtml } from "@/lib/sanitize";
 import { PUBLIC_FILTER, searchBusinesses, type ListingCard, type SearchInput } from "@/lib/search";
 
 /* ── Counts (materialized view listing_counts) ───────────────────── */
@@ -204,7 +205,8 @@ export async function getBusinessBySlug(slug: string) {
   if (!b) return null;
   cacheTag(tags.business(b.id));
   const { email: _email, ...rest } = b; // never expose the raw email publicly
-  return { ...rest, hasEmail: !!_email };
+  // Sanitized here (inside the cache scope): DOMPurify's jsdom reads the clock, which isn't allowed during render.
+  return { ...rest, description: sanitizeHtml(rest.description), hasEmail: !!_email };
 }
 
 export type PublicBusiness = NonNullable<Awaited<ReturnType<typeof getBusinessBySlug>>>;
@@ -264,4 +266,94 @@ export async function getTopBusinessSlugs(limit = 200) {
 export async function getSlugRedirect(path: string) {
   const r = await db.select({ newPath: s.slugRedirects.newPath }).from(s.slugRedirects).where(eq(s.slugRedirects.oldPath, path)).limit(1);
   return r[0]?.newPath ?? null;
+}
+
+/* ── Yelp-model extras (read-only) ───────────────────────────────── */
+
+export type ReviewSnippet = { rating: number; body: string; userName: string | null };
+
+/**
+ * One short review quote per business for search result rows: the newest 4+ star review,
+ * falling back to the newest review of any rating.
+ */
+export async function getReviewSnippets(businessIds: string[]): Promise<Record<string, ReviewSnippet>> {
+  "use cache";
+  cacheLife("hours");
+  if (!businessIds.length) return {};
+  cacheTag(tags.listings, ...businessIds.slice(0, 60).map((id) => tags.reviews(id)));
+  const ids = sql.join(
+    businessIds.map((id) => sql`${id}::uuid`),
+    sql`, `,
+  );
+  const r = await db.execute(sql`
+    select distinct on (r.business_id) r.business_id as "businessId", r.rating, left(r.body, 280) as body, u.name as "userName"
+    from reviews r
+    left join users u on u.id = r.user_id
+    where r.business_id in (${ids}) and r.status = 'published' and r.deleted_at is null
+    order by r.business_id, (r.rating >= 4) desc, r.created_at desc`);
+  const out: Record<string, ReviewSnippet> = {};
+  for (const row of r.rows as (ReviewSnippet & { businessId: string })[]) {
+    out[row.businessId] = { rating: Number(row.rating), body: row.body, userName: row.userName };
+  }
+  return out;
+}
+
+export type ActivityItem = {
+  id: string;
+  rating: number;
+  body: string;
+  createdAt: string;
+  userName: string | null;
+  userImage: string | null;
+  slug: string;
+  businessName: string;
+  cityName: string;
+  stateCode: string | null;
+  categoryName: string | null;
+  logoUrl: string | null;
+  bannerUrl: string | null;
+};
+
+/** Home "Recent activity" feed: the newest published review per business, newest first. */
+export async function getRecentActivity(limit = 9): Promise<ActivityItem[]> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(tags.listings);
+  try {
+    const r = await db.execute(sql`
+      with latest as (
+        select distinct on (r.business_id) r.id, r.business_id, r.user_id, r.rating, r.body, r.created_at
+        from reviews r
+        where r.status = 'published' and r.deleted_at is null
+        order by r.business_id, r.created_at desc
+      )
+      select l.id, l.rating, left(l.body, 360) as body, l.created_at as "createdAt",
+        u.name as "userName", coalesce(u.photo_url, u.image) as "userImage",
+        b.slug, b.name as "businessName", b.city_name as "cityName", s.code as "stateCode",
+        (select c.name from business_categories bc join categories c on c.id = bc.category_id
+           where bc.business_id = b.id order by bc.is_primary desc, c.name limit 1) as "categoryName",
+        (select m.url from media m where m.business_id = b.id and m.type = 'logo' order by m.sort_order limit 1) as "logoUrl",
+        (select m.url from media m where m.business_id = b.id and m.type in ('banner', 'gallery')
+           order by (m.type = 'banner') desc, m.sort_order limit 1) as "bannerUrl"
+      from latest l
+      join businesses b on b.id = l.business_id
+      left join states s on s.id = b.state_id
+      left join users u on u.id = l.user_id
+      where ${PUBLIC_FILTER}
+      order by l.created_at desc
+      limit ${limit}`);
+    return (r.rows as ActivityItem[]).map((row) => ({ ...row, rating: Number(row.rating), createdAt: new Date(row.createdAt).toISOString() }));
+  } catch {
+    return [];
+  }
+}
+
+/** "People also viewed": same category in the same city, best rated first. */
+export async function getPeopleAlsoViewed(b: { id: string; categoryId?: string; cityId?: string | null }, limit = 6) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(tags.listings);
+  if (!b.categoryId || !b.cityId) return [];
+  const { items } = await searchBusinesses({ categoryId: b.categoryId, cityId: b.cityId, excludeId: b.id, sort: "rating", perPage: limit });
+  return items;
 }

@@ -1,49 +1,49 @@
 import "server-only";
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
 import { headers } from "next/headers";
-
-let redis: Redis | null | undefined;
-
-export function getRedis(): Redis | null {
-  if (redis !== undefined) return redis;
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  redis = url && token ? new Redis({ url, token }) : null;
-  return redis;
-}
+import { sql } from "drizzle-orm";
+import { db } from "@/lib/db";
 
 type Bucket = "review" | "message" | "claim" | "contact" | "auth" | "api" | "verify" | "upload" | "ticket" | "write";
 
-const LIMITS: Record<Bucket, [number, `${number} ${"s" | "m" | "h"}`]> = {
-  review: [5, "1 h"],
-  message: [10, "1 h"],
-  claim: [5, "1 h"],
-  contact: [5, "1 h"],
-  auth: [10, "1 m"],
-  api: [60, "1 m"],
-  verify: [10, "1 h"],
-  upload: [60, "1 h"],
-  ticket: [20, "1 h"],
-  write: [120, "1 m"],
+/** [max requests, window in seconds] per bucket. */
+const LIMITS: Record<Bucket, [number, number]> = {
+  review: [5, 3600],
+  message: [10, 3600],
+  claim: [5, 3600],
+  contact: [5, 3600],
+  auth: [10, 60],
+  api: [60, 60],
+  verify: [10, 3600],
+  upload: [60, 3600],
+  ticket: [20, 3600],
+  write: [120, 60],
 };
 
-const limiters = new Map<Bucket, Ratelimit>();
-
 /**
- * Sliding-window rate limit per bucket and identifier (user id, API key id or IP).
- * Without Upstash configured (local dev) every request is allowed.
+ * Fixed-window rate limit stored in Neon (rate_limits table, shared with Better Auth).
+ * One atomic upsert per check: starts a new window when the old one expired, otherwise increments.
+ * Fails open (allows the request) if the database is unreachable, so a counter never blocks users.
  */
 export async function rateLimit(bucket: Bucket, identifier: string) {
-  const r = getRedis();
-  if (!r) return { success: true, remaining: Infinity, reset: 0 };
-  let limiter = limiters.get(bucket);
-  if (!limiter) {
-    const [count, window] = LIMITS[bucket];
-    limiter = new Ratelimit({ redis: r, limiter: Ratelimit.slidingWindow(count, window), prefix: `rl:${bucket}` });
-    limiters.set(bucket, limiter);
+  const [max, windowSec] = LIMITS[bucket];
+  const key = `app:${bucket}:${identifier}`;
+  const now = Date.now();
+  const windowStart = now - windowSec * 1000;
+  try {
+    const r = await db.execute(sql`
+      insert into rate_limits (id, key, count, last_request)
+      values (${key}, ${key}, 1, ${now})
+      on conflict (key) do update set
+        count = case when rate_limits.last_request < ${windowStart} then 1 else rate_limits.count + 1 end,
+        last_request = case when rate_limits.last_request < ${windowStart} then ${now} else rate_limits.last_request end
+      returning count, last_request`);
+    const row = r.rows[0] as { count: number; last_request: string | number };
+    const count = Number(row.count);
+    return { success: count <= max, remaining: Math.max(0, max - count), reset: Number(row.last_request) + windowSec * 1000 };
+  } catch (e) {
+    console.error("[ratelimit] check failed, allowing request", e);
+    return { success: true, remaining: max, reset: now };
   }
-  return limiter.limit(identifier);
 }
 
 export async function clientIp() {

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,23 +18,28 @@ function read(): Consent | null {
   }
 }
 
+function subscribeConsent(cb: () => void) {
+  window.addEventListener("cookie-consent", cb);
+  window.addEventListener("storage", cb);
+  return () => {
+    window.removeEventListener("cookie-consent", cb);
+    window.removeEventListener("storage", cb);
+  };
+}
+
 /** Cookie banner: Accept all, Reject non-essential, Settings. */
 export function CookieConsent() {
-  const [show, setShow] = useState(false);
+  // Hidden on the server and until we know no choice was stored.
+  const show = useSyncExternalStore(subscribeConsent, () => read() === null, () => false);
   const [settings, setSettings] = useState(false);
   const [prefs, setPrefs] = useState<Consent>({ necessary: true, analytics: true, marketing: false });
-
-  useEffect(() => {
-    if (!read()) setShow(true);
-  }, []);
 
   const save = (c: Consent) => {
     try {
       localStorage.setItem(KEY, JSON.stringify(c));
     } catch {}
-    window.dispatchEvent(new CustomEvent("cookie-consent", { detail: c }));
-    setShow(false);
     setSettings(false);
+    window.dispatchEvent(new CustomEvent("cookie-consent", { detail: c }));
   };
 
   if (!show) return null;

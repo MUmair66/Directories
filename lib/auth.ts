@@ -2,9 +2,9 @@ import "server-only";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
-import { admin, twoFactor, username } from "better-auth/plugins";
+import { admin, captcha, username } from "better-auth/plugins";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 import { uuidv7 } from "uuidv7";
 import { eq } from "drizzle-orm";
@@ -27,7 +27,7 @@ function createAuth() {
         session: schema.sessions,
         account: schema.accounts,
         verification: schema.verifications,
-        twoFactor: schema.twoFactors,
+        rateLimit: schema.rateLimits,
       },
     }),
     advanced: {
@@ -36,9 +36,10 @@ function createAuth() {
     },
     emailAndPassword: {
       enabled: true,
-      requireEmailVerification: true,
+      // Simple sign-up: the account is usable immediately and the user is signed in.
+      requireEmailVerification: false,
       minPasswordLength: 8,
-      autoSignIn: false,
+      autoSignIn: true,
       sendResetPassword: async ({ user, url }) => {
         await sendEmail({
           to: user.email,
@@ -47,8 +48,10 @@ function createAuth() {
         });
       },
     },
+    // Verification emails are only sent on request (e.g. after an email change), never as a sign-up gate.
     emailVerification: {
-      sendOnSignUp: true,
+      sendOnSignUp: false,
+      sendOnSignIn: false,
       autoSignInAfterVerification: true,
       sendVerificationEmail: async ({ user, url }) => {
         await sendEmail({
@@ -106,11 +109,34 @@ function createAuth() {
         },
       },
     },
-    rateLimit: { enabled: true, window: 60, max: 30 },
+    // Login/sign-up rate limits live in Neon (rate_limits table): shared across serverless instances, no extra datastore.
+    rateLimit: {
+      enabled: true,
+      storage: "database",
+      modelName: "rateLimit",
+      window: 60,
+      max: 30,
+      customRules: {
+        "/sign-in/email": { window: 60, max: 10 },
+        "/sign-in/username": { window: 60, max: 10 },
+        "/sign-up/email": { window: 3600, max: 10 },
+        "/request-password-reset": { window: 3600, max: 5 },
+        // Reading the current session happens on every page view (header, dashboards): never throttle it.
+        "/get-session": false,
+      },
+    },
     plugins: [
       username(),
-      twoFactor({ issuer: BRAND_NAME }),
       admin({ defaultRole: "user", adminRoles: ["admin"] }),
+      ...(process.env.TURNSTILE_SECRET_KEY
+        ? [
+            captcha({
+              provider: "cloudflare-turnstile",
+              secretKey: process.env.TURNSTILE_SECRET_KEY,
+              endpoints: ["/sign-up/email", "/sign-in/email", "/sign-in/username", "/request-password-reset"],
+            }),
+          ]
+        : []),
       nextCookies(),
     ],
   });
@@ -143,9 +169,10 @@ export function hasRole(user: { role?: string | null } | null | undefined, ...ro
   return !!user?.role && roles.includes(user.role as Role);
 }
 
+/** Signed-out users go to login; signed-in users without the role get a 404 (no redirect, and the admin area isn't revealed). */
 export async function requireRole(...roles: Role[]): Promise<SessionUser> {
   const user = await requireUser();
-  if (!hasRole(user, ...roles)) redirect("/dashboard");
+  if (!hasRole(user, ...roles)) notFound();
   return user;
 }
 

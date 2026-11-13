@@ -11,6 +11,22 @@ export function sanitizeHtml(html: string | null | undefined) {
   }).replace(/<a /g, '<a rel="nofollow noopener" ');
 }
 
+/**
+ * Admin "Custom code" sections rendered inline in a landing page: any HTML + <style> CSS, classes,
+ * inline styles and https iframes (YouTube, Maps…). Scripts and on* event handlers are removed;
+ * code that needs JavaScript uses the sandboxed-iframe mode instead.
+ */
+export function sanitizeCustomCode(html: string | null | undefined) {
+  if (!html) return "";
+  return DOMPurify.sanitize(html, {
+    FORCE_BODY: true,
+    ADD_TAGS: ["style", "iframe"],
+    ADD_ATTR: ["style", "class", "target", "allow", "allowfullscreen", "frameborder", "loading", "referrerpolicy"],
+    FORBID_TAGS: ["script", "base", "meta", "link"],
+    ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|tel:|\/|#|data:image\/)/i,
+  });
+}
+
 /** Plain text only (strip every tag). */
 export function stripHtml(html: string | null | undefined) {
   return DOMPurify.sanitize(html ?? "", { ALLOWED_TAGS: [] });

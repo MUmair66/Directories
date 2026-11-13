@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs/config";
 
 const r2Host = (() => {
   try {
@@ -14,6 +15,8 @@ const nextConfig: NextConfig = {
   typedRoutes: false,
   serverExternalPackages: ["sharp", "ws"],
   turbopack: {
+    // Pin the workspace root (a package-lock.json higher up the tree would otherwise be picked up).
+    root: process.cwd(),
     rules: {
       "*.css": {
         loaders: ["@tailwindcss/turbopack"],
@@ -51,4 +54,17 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+/**
+ * Sentry source-map upload runs only when SENTRY_AUTH_TOKEN is present (CI / Vercel);
+ * local builds skip the wrapper entirely.
+ */
+export default process.env.SENTRY_AUTH_TOKEN
+  ? withSentryConfig(nextConfig, {
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      silent: !process.env.CI,
+      widenClientFileUpload: true,
+      sourcemaps: { deleteSourcemapsAfterUpload: true },
+    })
+  : nextConfig;

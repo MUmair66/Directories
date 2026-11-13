@@ -25,14 +25,45 @@ export const submissionKindEnum = pgEnum("submission_kind", ["contact", "faq"]);
 
 export type FaqItem = { question: string; answer: string };
 
-export type LandingContent = {
-  hero: { headline: string; subheadline: string; ctaLabel: string; imageUrl?: string };
-  services: { title: string; description: string }[];
-  images: string[];
-  testimonials: { quote: string; name: string }[];
-  faqs: FaqItem[];
-  form: { fields: ("name" | "email" | "phone" | "message")[]; submitLabel: string };
+/* Landing pages: one shared structure (ordered sections, each with a #Anchor), fully editable per business by admins. */
+export type LandingSectionType = "intro" | "services" | "about" | "gallery" | "reviews" | "faq" | "contact" | "custom" | "code";
+export type LandingItem = { title: string; text: string; imageUrl: string };
+export type LandingSection = {
+  id: string;
+  type: LandingSectionType;
+  /** URL fragment, e.g. "Intro" → /11538-best-painting-services-westlake-oh#Intro */
+  anchor: string;
+  /** Label in the page's top navigation (empty = not in the nav). */
+  navLabel: string;
+  enabled: boolean;
+  title: string;
+  subtitle: string;
+  /** Sanitized HTML. */
+  body: string;
+  imageUrl: string;
+  ctaLabel: string;
+  layout: "image-left" | "image-right" | "centered";
+  /** "" = theme default */
+  bgColor: string;
+  textColor: string;
+  items: LandingItem[];
+  /** "code" sections: admin-written HTML/CSS (or JS in sandbox mode). */
+  code?: string;
+  /** html = rendered in the page (scripts removed); sandbox = isolated iframe where JavaScript runs. */
+  codeMode?: "html" | "sandbox";
+  /** code sections: edge-to-edge with no padding. */
+  fullWidth?: boolean;
 };
+export type LandingTheme = {
+  primary: string;
+  accent: string;
+  background: string;
+  text: string;
+  /** Hero image darkening, 0–90 (%). */
+  heroOverlay: number;
+  radius: "none" | "small" | "large";
+};
+export type LandingContent = { version: 2; theme: LandingTheme; sections: LandingSection[] };
 
 export const landingPages = pgTable(
   "landing_pages",

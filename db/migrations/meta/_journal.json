@@ -22,6 +22,27 @@
       "when": 1794496181716,
       "tag": "0002_search_geo_views",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794499538736,
+      "tag": "0003_better_auth_two_factor",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794509201896,
+      "tag": "0004_rate_limits",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794509214332,
+      "tag": "0005_remove_two_factor",
+      "breakpoints": true
     }
   ]
 }

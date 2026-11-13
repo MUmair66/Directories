@@ -6,8 +6,9 @@ import ws from "ws";
 import * as schema from "@/db/schema";
 
 /**
+ * Neon is the app's only database.
  * All runtime queries use DATABASE_URL (the pooled "-pooler" connection).
- * DATABASE_URL_UNPOOLED is used only by drizzle-kit (see drizzle.config.ts).
+ * DATABASE_URL_UNPOOLED is used only by drizzle-kit and the seed (see drizzle.config.ts).
  *
  * - `db`: HTTP driver, one round trip per query. Use for reads and single writes.
  * - `tx()`: WebSocket Pool driver for interactive transactions.

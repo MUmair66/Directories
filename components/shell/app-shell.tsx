@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Bell, ChevronsLeft, LogOut, Menu, Moon, Plus, Sun, type LucideIcon } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
@@ -14,28 +14,39 @@ export type NavGroup = { label?: string; items: { label: string; href: string; i
 
 const THEME_KEY = "dash-theme";
 
+function readDark() {
+  let saved: string | null = null;
+  try {
+    saved = localStorage.getItem(THEME_KEY);
+  } catch {}
+  return saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+}
+
+function subscribeTheme(cb: () => void) {
+  const mq = window.matchMedia("(prefers-color-scheme: dark)");
+  window.addEventListener("dash-theme", cb);
+  window.addEventListener("storage", cb);
+  mq.addEventListener("change", cb);
+  return () => {
+    window.removeEventListener("dash-theme", cb);
+    window.removeEventListener("storage", cb);
+    mq.removeEventListener("change", cb);
+  };
+}
+
 /** Dark mode for dashboard and admin only: toggles `.dark` on <html> while mounted. */
 function useDashTheme() {
-  const [dark, setDark] = useState(false);
-  useEffect(() => {
-    let saved: string | null = null;
-    try {
-      saved = localStorage.getItem(THEME_KEY);
-    } catch {}
-    const initial = saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
-    setDark(initial);
-  }, []);
+  const dark = useSyncExternalStore(subscribeTheme, readDark, () => false);
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
     return () => document.documentElement.classList.remove("dark");
   }, [dark]);
-  const toggle = () =>
-    setDark((d) => {
-      try {
-        localStorage.setItem(THEME_KEY, d ? "light" : "dark");
-      } catch {}
-      return !d;
-    });
+  const toggle = () => {
+    try {
+      localStorage.setItem(THEME_KEY, dark ? "light" : "dark");
+    } catch {}
+    window.dispatchEvent(new Event("dash-theme"));
+  };
   return { dark, toggle };
 }
 

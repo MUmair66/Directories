@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "../..",
+    "paths": {
+      "@/lib/db": ["./tests/db/db-shim.ts"],
+      "next/cache": ["./tests/db/next-cache-stub.ts"],
+      "@/*": ["./*"]
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { boolean, index, pgTable, text, timestamp, uniqueIndex, jsonb } from "drizzle-orm/pg-core";
+import { bigint, boolean, index, integer, pgTable, text, timestamp, uniqueIndex, jsonb } from "drizzle-orm/pg-core";
 import { citext } from "./_types";
 
 /**
@@ -26,8 +26,6 @@ export const users = pgTable(
     banned: boolean("banned").default(false),
     banReason: text("ban_reason"),
     banExpires: timestamp("ban_expires", { withTimezone: true }),
-    // two-factor plugin
-    twoFactorEnabled: boolean("two_factor_enabled").default(false),
     // profile (Better Auth additionalFields)
     firstName: text("first_name"),
     lastName: text("last_name"),
@@ -98,18 +96,17 @@ export const verifications = pgTable(
   (t) => [index("verifications_identifier_idx").on(t.identifier)],
 );
 
-export const twoFactors = pgTable(
-  "two_factors",
-  {
-    id: text("id").primaryKey(),
-    secret: text("secret").notNull(),
-    backupCodes: text("backup_codes").notNull(),
-    userId: text("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-  },
-  (t) => [index("two_factors_user_idx").on(t.userId)],
-);
+/**
+ * Rate-limit counters, kept in Neon (the only datastore). Used by Better Auth for login/signup
+ * limits (keys like "127.0.0.1/sign-in/email") and by lib/ratelimit.ts for app forms ("app:…" keys).
+ */
+export const rateLimits = pgTable("rate_limits", {
+  id: text("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  count: integer("count").notNull(),
+  /** Epoch milliseconds of the window start (Better Auth convention). */
+  lastRequest: bigint("last_request", { mode: "number" }).notNull(),
+});
 
 /** Notification preferences (email) per user. */
 export const userPreferences = pgTable("user_preferences", {

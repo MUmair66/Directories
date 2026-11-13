@@ -23,8 +23,6 @@ const schema = z.object({
   R2_PRIVATE_BUCKET: z.string().optional(),
   R2_PUBLIC_URL: z.string().optional(),
   TURNSTILE_SECRET_KEY: z.string().optional(),
-  UPSTASH_REDIS_REST_URL: z.string().optional(),
-  UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
   CRON_SECRET: z.string().optional(),
   SENTRY_DSN: z.string().optional(),
   ADMIN_EMAIL: z.string().optional(),

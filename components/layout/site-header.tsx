@@ -3,14 +3,13 @@ import { Mail, Plus, UserRound } from "lucide-react";
 import { getSettings } from "@/lib/settings";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/primitives";
-import { HeaderSearch } from "./header-search";
 import { Logo } from "./logo";
 import { NAV } from "./nav-items";
 import { UserMenu } from "./user-menu";
 import { MobileNav } from "./mobile-nav";
 import { SocialIcon, SOCIAL_LABELS } from "./social-icons";
 
-export async function SiteHeader({ showSearch = true }: { showSearch?: boolean }) {
+export async function SiteHeader() {
   const { site } = await getSettings();
   return (
     <>
@@ -61,7 +60,6 @@ export async function SiteHeader({ showSearch = true }: { showSearch?: boolean }
             </Button>
           </div>
         </Container>
-        {showSearch && <HeaderSearch />}
       </header>
     </>
   );

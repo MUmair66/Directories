@@ -1,7 +1,7 @@
 import "server-only";
 import { sql, type SQL } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { getRedis } from "@/lib/ratelimit";
+import { cacheLife } from "next/cache";
 import { METERS_PER_MILE, type BBox } from "@/lib/geo";
 import type { HoursRow } from "@/lib/hours";
 
@@ -193,65 +193,65 @@ export type Suggestion = {
 
 /** "What" autocomplete: categories + business names. Popular prefixes cached in Redis for 10 minutes. */
 export async function suggestWhat(prefix: string): Promise<Suggestion[]> {
+  "use cache";
+  cacheLife({ stale: 300, revalidate: 600, expire: 3600 });
   const q = prefix.trim().toLowerCase().slice(0, 60);
   if (q.length < 2) return [];
-  return cached(`ac:what:${q}`, async () => {
-    const r = await db.execute(sql`
-      (select 'category' as type, c.name as label, p.name as sublabel, c.slug as slug, null as extra,
-          greatest(similarity(f_unaccent(lower(c.name)), f_unaccent(${q})), case when lower(c.name) like ${q + "%"} then 1 else 0 end) as score
-        from categories c left join categories p on p.id = c.parent_id
-        where f_unaccent(lower(c.name)) % f_unaccent(${q}) or lower(c.name) like ${"%" + q + "%"}
-        order by score desc limit 4)
-      union all
-      (select 'business', b.name, b.city_name || coalesce(', ' || s.code, ''), b.slug, null,
-          greatest(similarity(f_unaccent(lower(b.name)), f_unaccent(${q})), case when lower(b.name) like ${q + "%"} then 1 else 0 end)
-        from businesses b left join states s on s.id = b.state_id
-        where ${PUBLIC_FILTER} and (f_unaccent(lower(b.name)) % f_unaccent(${q}) or lower(b.name) like ${q + "%"})
-        order by 6 desc, b.review_count desc limit 4)`);
-    return (r.rows as { type: "category" | "business"; label: string; sublabel: string | null; slug: string }[])
-      .slice(0, 8)
-      .map((row) =>
-        row.type === "category"
-          ? { type: "category", label: row.label, sublabel: row.sublabel ?? "Category", href: `/search?category=${row.slug}`, value: row.label }
-          : { type: "business", label: row.label, sublabel: row.sublabel ?? undefined, href: `/biz/${row.slug}`, value: row.label },
-      );
-  });
+  const r = await db.execute(sql`
+    (select 'category' as type, c.name as label, p.name as sublabel, c.slug as slug, null as extra,
+        greatest(similarity(f_unaccent(lower(c.name)), f_unaccent(${q})), case when lower(c.name) like ${q + "%"} then 1 else 0 end) as score
+      from categories c left join categories p on p.id = c.parent_id
+      where f_unaccent(lower(c.name)) % f_unaccent(${q}) or f_unaccent(lower(c.name)) like f_unaccent(${"%" + q + "%"})
+      order by score desc limit 4)
+    union all
+    (select 'business', b.name, b.city_name || coalesce(', ' || s.code, ''), b.slug, null,
+        greatest(similarity(f_unaccent(lower(b.name)), f_unaccent(${q})), case when lower(b.name) like ${q + "%"} then 1 else 0 end)
+      from businesses b left join states s on s.id = b.state_id
+      where ${PUBLIC_FILTER} and (f_unaccent(lower(b.name)) % f_unaccent(${q}) or f_unaccent(lower(b.name)) like f_unaccent(${"%" + q + "%"}))
+      order by 6 desc, b.review_count desc limit 4)`);
+  return (r.rows as { type: "category" | "business"; label: string; sublabel: string | null; slug: string }[])
+    .slice(0, 8)
+    .map((row) =>
+      row.type === "category"
+        ? { type: "category", label: row.label, sublabel: row.sublabel ?? "Category", href: `/search?category=${row.slug}`, value: row.label }
+        : { type: "business", label: row.label, sublabel: row.sublabel ?? undefined, href: `/biz/${row.slug}`, value: row.label },
+    );
 }
 
 /** "Where" autocomplete: cities, states and ZIP codes. */
 export async function suggestWhere(prefix: string): Promise<Suggestion[]> {
+  "use cache";
+  cacheLife({ stale: 300, revalidate: 600, expire: 3600 });
   const q = prefix.trim().toLowerCase().slice(0, 60);
   if (q.length < 2) return [];
-  return cached(`ac:where:${q}`, async () => {
-    if (/^\d{3,5}$/.test(q)) {
-      const r = await db.execute(sql`
-        select distinct b.zip, b.city_name, s.code from businesses b left join states s on s.id = b.state_id
-        where ${PUBLIC_FILTER} and b.zip like ${q + "%"} limit 8`);
-      return (r.rows as { zip: string; city_name: string; code: string }[]).map((z) => ({
-        type: "zip" as const,
-        label: z.zip,
-        sublabel: `${z.city_name}, ${z.code}`,
-        href: `/search?location=${z.zip}`,
-        value: z.zip,
-      }));
-    }
-    const cityPart = q.split(",")[0]!.trim();
+  if (/^\d{3,5}$/.test(q)) {
     const r = await db.execute(sql`
-      (select 'state' as type, s.name as label, s.code as code, s.slug as slug, null as state_slug, 2.0 as score
-        from states s where lower(s.name) like ${cityPart + "%"} or lower(s.code) = ${cityPart} limit 2)
-      union all
-      (select 'city', c.name, s.code, c.slug, s.slug,
-          greatest(similarity(f_unaccent(lower(c.name)), f_unaccent(${cityPart})), case when lower(c.name) like ${cityPart + "%"} then 1 else 0 end)
-            + coalesce(log(greatest(c.population, 1)) / 20, 0)
-        from cities c join states s on s.id = c.state_id
-        where f_unaccent(lower(c.name)) % f_unaccent(${cityPart}) or lower(c.name) like ${cityPart + "%"}
-        order by 6 desc limit 6)`);
-    return (r.rows as { type: "state" | "city"; label: string; code: string; slug: string; state_slug: string | null }[]).map((row) =>
-      row.type === "state"
-        ? { type: "state", label: row.label, sublabel: "State", href: `/states/${row.slug}`, value: row.label }
-        : { type: "city", label: `${row.label}, ${row.code}`, sublabel: "City", href: `/states/${row.state_slug}/${row.slug}`, value: `${row.label}, ${row.code}` },
-    );
-  });
+      select distinct b.zip, b.city_name, s.code from businesses b left join states s on s.id = b.state_id
+      where ${PUBLIC_FILTER} and b.zip like ${q + "%"} limit 8`);
+    return (r.rows as { zip: string; city_name: string; code: string }[]).map((z) => ({
+      type: "zip" as const,
+      label: z.zip,
+      sublabel: `${z.city_name}, ${z.code}`,
+      href: `/search?location=${z.zip}`,
+      value: z.zip,
+    }));
+  }
+  const cityPart = q.split(",")[0]!.trim();
+  const r = await db.execute(sql`
+    (select 'state' as type, s.name as label, s.code as code, s.slug as slug, null as state_slug, 2.0 as score
+      from states s where lower(s.name) like ${cityPart + "%"} or lower(s.code) = ${cityPart} limit 2)
+    union all
+    (select 'city', c.name, s.code, c.slug, s.slug,
+        greatest(similarity(f_unaccent(lower(c.name)), f_unaccent(${cityPart})), case when lower(c.name) like ${cityPart + "%"} then 1 else 0 end)
+          + coalesce(log(greatest(c.population, 1)) / 20, 0)
+      from cities c join states s on s.id = c.state_id
+      where f_unaccent(lower(c.name)) % f_unaccent(${cityPart}) or lower(c.name) like ${cityPart + "%"}
+      order by 6 desc limit 6)`);
+  return (r.rows as { type: "state" | "city"; label: string; code: string; slug: string; state_slug: string | null }[]).map((row) =>
+    row.type === "state"
+      ? { type: "state", label: row.label, sublabel: "State", href: `/states/${row.slug}`, value: row.label }
+      : { type: "city", label: `${row.label}, ${row.code}`, sublabel: "City", href: `/states/${row.state_slug}/${row.slug}`, value: `${row.label}, ${row.code}` },
+  );
 }
 
 export type ResolvedLocation = { stateId?: string; cityId?: string; zip?: string; label: string; lat?: number; lng?: number };
@@ -276,17 +276,3 @@ export async function resolveLocation(text: string): Promise<ResolvedLocation | 
   return c ? { cityId: c.id, stateId: c.state_id, label: `${c.name}, ${c.code}`, lat: c.lat, lng: c.lng } : null;
 }
 
-async function cached<T>(key: string, fn: () => Promise<T>, ttlSeconds = 600): Promise<T> {
-  const redis = getRedis();
-  if (redis) {
-    try {
-      const hit = await redis.get<T>(key);
-      if (hit) return hit;
-    } catch {
-      /* cache miss on Redis errors */
-    }
-  }
-  const value = await fn();
-  if (redis) redis.set(key, value, { ex: ttlSeconds }).catch(() => {});
-  return value;
-}

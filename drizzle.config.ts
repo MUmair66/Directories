@@ -1,4 +1,7 @@
-import "dotenv/config";
+import { config } from "dotenv";
+
+// `neon deploy` / `neon env pull` write to .env.local; .env is a fallback.
+config({ path: [".env.local", ".env"], quiet: true });
 import { defineConfig } from "drizzle-kit";
 
 /** Migrations always run on the direct (unpooled) Neon connection. */

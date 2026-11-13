@@ -10,12 +10,9 @@ type Props = { variant?: "hero" | "compact"; defaultWhat?: string; defaultWhere?
 
 function useSuggestions(kind: "what" | "where", query: string) {
   const [items, setItems] = useState<Suggestion[]>([]);
+  const q = query.trim();
   useEffect(() => {
-    const q = query.trim();
-    if (q.length < 2) {
-      setItems([]);
-      return;
-    }
+    if (q.length < 2) return;
     const ctrl = new AbortController();
     const t = setTimeout(() => {
       fetch(`/api/autocomplete?type=${kind}&q=${encodeURIComponent(q)}`, { signal: ctrl.signal })
@@ -27,8 +24,8 @@ function useSuggestions(kind: "what" | "where", query: string) {
       clearTimeout(t);
       ctrl.abort();
     };
-  }, [kind, query]);
-  return items;
+  }, [kind, q]);
+  return q.length < 2 ? [] : items;
 }
 
 const ICONS = { category: Tag, business: Building2, city: MapPin, state: MapPin, zip: MapPin };

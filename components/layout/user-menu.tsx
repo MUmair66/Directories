@@ -45,6 +45,13 @@ export function UserMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuLabel>{user.name || user.email}</DropdownMenuLabel>
+        {isStaff && (
+          <DropdownMenuItem asChild>
+            <Link href="/admin/dashboard">
+              <Shield /> Admin dashboard
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem asChild>
           <Link href="/dashboard">
             <LayoutDashboard /> Dashboard
@@ -60,13 +67,6 @@ export function UserMenu() {
             <Heart /> Favorites
           </Link>
         </DropdownMenuItem>
-        {isStaff && (
-          <DropdownMenuItem asChild>
-            <Link href="/admin">
-              <Shield /> Admin
-            </Link>
-          </DropdownMenuItem>
-        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={async () => {

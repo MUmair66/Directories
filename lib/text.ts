@@ -1,10 +1,10 @@
-import he from "he";
+import { decode } from "he";
 
-/** Lowercase, hyphenated, ASCII-only slug. "Joe's Plumbing & Heating" -> "joes-plumbing-heating". */
+/** Lowercase, hyphenated, ASCII-only slug. "Joe's Plumbing & Heating" -> "joes-plumbing-and-heating". */
 export function slugify(input: string, maxLength = 80) {
   return input
     .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/&/g, " and ")
     .replace(/['’]/g, "")
@@ -19,7 +19,7 @@ export function decodeEntities(input: string | null | undefined) {
   if (!input) return "";
   let out = input;
   for (let i = 0; i < 3; i++) {
-    const next = he.decode(out);
+    const next = decode(out);
     if (next === out) break;
     out = next;
   }
