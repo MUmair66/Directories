@@ -27,3 +27,23 @@ describe("custom code sections", async () => {
     expect(landingContentSchema.safeParse(c).success).toBe(true);
   });
 });
+
+describe("rich text sanitizer", async () => {
+  const { sanitizeCustomCode } = await import("@/lib/sanitize");
+  const { sanitizeHtml, stripHtml } = await import("@/lib/sanitize");
+  it("keeps formatting, forces nofollow links, drops scripts and handlers", () => {
+    const out = sanitizeHtml('<p onclick="x()">Hi <strong>there</strong> <a href="https://a.com">link</a> <a href="javascript:alert(1)">bad</a></p><script>alert(1)</script><img src="https://a.com/x.png" onerror="y()">');
+    expect(out).toContain("<strong>there</strong>");
+    expect(out).toContain('rel="nofollow noopener"');
+    expect(out).toContain('src="https://a.com/x.png"');
+    expect(out).not.toMatch(/onclick|onerror|<script|javascript:/i);
+  });
+  it("strips every tag for plain text", () => {
+    expect(stripHtml("<b>Bold</b> & <i>it</i><script>bad()</script>")).toBe("Bold &amp; it");
+  });
+  it("keeps SVG and data images in custom code", () => {
+    const out = sanitizeCustomCode('<svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="red"/></svg><img src="data:image/png;base64,AAA">');
+    expect(out).toContain("<circle");
+    expect(out).toContain('src="data:image/png;base64,AAA"');
+  });
+});

@@ -205,7 +205,7 @@ export async function getBusinessBySlug(slug: string) {
   if (!b) return null;
   cacheTag(tags.business(b.id));
   const { email: _email, ...rest } = b; // never expose the raw email publicly
-  // Sanitized here (inside the cache scope): DOMPurify's jsdom reads the clock, which isn't allowed during render.
+  // Sanitized once here, inside the cache scope, instead of on every render.
   return { ...rest, description: sanitizeHtml(rest.description), hasEmail: !!_email };
 }
 
