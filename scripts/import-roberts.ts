@@ -34,7 +34,7 @@ const GALLERY = [
   "exterior-painting-home", "porch-painting", "pressure-washing", "pool-screen-enclosure", "commercial-painting-in-progress",
   "commercial-building-painting", "exterior-painting-home-2", "backyard-pool", "landscaping", "porch-railings",
   "lvp-flooring", "lvp-flooring-2", "lvp-flooring-3", "bathroom-remodel", "bathroom-remodel-2", "bathroom-remodel-3",
-  "bathroom-remodel-4", "bathroom-remodel-5", "baseboard-installation", "commercial-building-painting-2",
+  "bathroom-remodel-4", "bathroom-remodel-5",
 ];
 
 const STATS_CODE = `<div class="re-stats">
