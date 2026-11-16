@@ -39,7 +39,7 @@ export async function seedContent(db: NeonDatabase<typeof s>) {
   }
 
   const [{ n: tCount }] = (await db.execute(sql`select count(*)::int as n from testimonials`)).rows as { n: number }[];
-  if (!tCount) {
+  if (!tCount && process.env.SEED_DEMO === "1") {
     await db.insert(s.testimonials).values([
       { name: "Dana R.", business: "Blue Line Plumbing", quote: `We started getting calls the same week our listing went live. ${BRAND} is now our #2 lead source.`, rating: 5, sortOrder: 1 },
       { name: "Luis M.", business: "Summit Roofing Co.", quote: "Setting up took five minutes and the dashboard shows exactly how many people called us.", rating: 5, sortOrder: 2 },

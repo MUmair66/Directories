@@ -1,10 +1,10 @@
 /**
- * Seed: category taxonomy, 50 states + DC, US cities (Census Gazetteer), 50 demo businesses
- * with hours, media and reviews, plus starter CMS content.
+ * Seed: category taxonomy, 50 states + DC, US cities (Census Gazetteer) and starter CMS content.
+ * Demo businesses/testimonials only with SEED_DEMO=1 (never on the production database).
  *
  *   npm run db:seed                       # full seed
  *   SEED_SKIP_GAZETTEER=1 npm run db:seed # use the built-in major-city list only
- *   SEED_DEMO_COUNT=100000 npm run db:seed # load-test volume for search benchmarks
+ *   SEED_DEMO=1 SEED_DEMO_COUNT=100000 npm run db:seed # load-test volume for search benchmarks
  *
  * Runs on DATABASE_URL_UNPOOLED (direct connection), like migrations.
  */

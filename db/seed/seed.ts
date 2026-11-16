@@ -229,8 +229,9 @@ export async function seedAll(database: SeedDb) {
   await seedStates();
   await seedCities();
   const existing = await db.execute(sql`select count(*)::int as n from businesses`);
-  if (Number((existing.rows[0] as { n: number }).n) === 0) await seedDemo();
-  else console.log("• businesses already present, skipping demo data");
+  // Demo businesses only on request (SEED_DEMO=1), never on a real database.
+  if (process.env.SEED_DEMO === "1" && Number((existing.rows[0] as { n: number }).n) === 0) await seedDemo();
+  else console.log("• skipping demo businesses (set SEED_DEMO=1 to add them)");
   await seedContent(db);
   await db.execute(sql`refresh materialized view listing_counts`);
   console.log("✓ listing_counts refreshed");
