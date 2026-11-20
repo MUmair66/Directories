@@ -2,27 +2,27 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Design tokens. 8px grid, 12px card radius, slate-200 borders. */
+/* Design tokens. 8px grid, 12px card radius. Brand: LocalSpecific purple + deep navy. */
 :root {
   --background: #ffffff;
-  --foreground: #0f172a;
-  --surface: #f8fafc;
+  --foreground: #12122e;
+  --surface: #f8f6fc;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #12122e;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #2563eb;
-  --primary-dark: #1e3a8a;
+  --popover-foreground: #12122e;
+  --primary: #7b1fa2;
+  --primary-dark: #4a148c;
   --primary-foreground: #ffffff;
-  --secondary: #eff6ff;
-  --secondary-foreground: #1e3a8a;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #f1f5f9;
-  --accent-foreground: #0f172a;
-  --border: #e2e8f0;
-  --input: #cbd5e1;
-  --ring: #2563eb;
+  --secondary: #f5ebfa;
+  --secondary-foreground: #4a148c;
+  --muted: #f3f1f7;
+  --muted-foreground: #64627a;
+  --accent: #f3f1f7;
+  --accent-foreground: #12122e;
+  --border: #e7e3ef;
+  --input: #d4cfe0;
+  --ring: #7b1fa2;
   --rating: #f59e0b;
   --success: #16a34a;
   --danger: #dc2626;
@@ -30,25 +30,25 @@
 }
 
 .dark {
-  --background: #0b1120;
-  --foreground: #e2e8f0;
-  --surface: #0f172a;
-  --card: #111a2e;
-  --card-foreground: #e2e8f0;
-  --popover: #111a2e;
-  --popover-foreground: #e2e8f0;
-  --primary: #3b82f6;
-  --primary-dark: #93c5fd;
+  --background: #0d0c1d;
+  --foreground: #ece9f5;
+  --surface: #121027;
+  --card: #18152f;
+  --card-foreground: #ece9f5;
+  --popover: #18152f;
+  --popover-foreground: #ece9f5;
+  --primary: #a03fd0;
+  --primary-dark: #e2c2f5;
   --primary-foreground: #ffffff;
-  --secondary: #172554;
-  --secondary-foreground: #bfdbfe;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  --accent: #1e293b;
-  --accent-foreground: #e2e8f0;
-  --border: #1e293b;
-  --input: #334155;
-  --ring: #60a5fa;
+  --secondary: #2a1543;
+  --secondary-foreground: #e2c2f5;
+  --muted: #221e3b;
+  --muted-foreground: #a6a2bd;
+  --accent: #221e3b;
+  --accent-foreground: #ece9f5;
+  --border: #2a2645;
+  --input: #3a3558;
+  --ring: #c084fc;
   --success: #22c55e;
   --danger: #f87171;
 }
@@ -76,7 +76,9 @@
   --color-rating: var(--rating);
   --color-success: var(--success);
   --color-danger: var(--danger);
-  --color-ink: #0f172a;
+  --color-ink: #14133a;
+  --color-brand-deep: #2b0b4d;
+  --color-brand-glow: #d8a7f5;
 
   --radius-sm: 6px;
   --radius-md: 8px;
@@ -94,8 +96,14 @@
   --text-3xl: 2rem;
   --text-5xl: 3rem;
 
-  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 4px 12px rgb(15 23 42 / 0.05);
-  --shadow-card-hover: 0 2px 4px rgb(15 23 42 / 0.06), 0 12px 24px rgb(15 23 42 / 0.08);
+  --shadow-card: 0 1px 2px rgb(20 19 58 / 0.04), 0 4px 14px rgb(20 19 58 / 0.06);
+  --shadow-card-hover: 0 2px 4px rgb(20 19 58 / 0.06), 0 14px 28px rgb(74 20 140 / 0.12);
+
+  --animate-float: float 4s ease-in-out infinite;
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
 
   --animate-in: fade-in 180ms ease-out;
   @keyframes fade-in {
@@ -151,14 +159,27 @@
 
 /* Leaflet cluster markers in brand color */
 .marker-cluster-brand {
-  background: rgb(37 99 235 / 0.25);
+  background: rgb(123 31 162 / 0.25);
   border-radius: 9999px;
 }
 .marker-cluster-brand div {
-  background: #2563eb;
+  background: #7b1fa2;
   color: #fff;
   border-radius: 9999px;
   width: 32px; height: 32px; margin: 4px;
   display: flex; align-items: center; justify-content: center;
   font: 600 13px var(--font-sans);
+}
+
+/* Two-tone headings, e.g. "Browse by <span class=text-brand-gradient>Category</span>" */
+@layer components {
+  .text-brand-gradient {
+    background: linear-gradient(90deg, #6a1b9a, #9c27b0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .dark .text-brand-gradient {
+    background-image: linear-gradient(90deg, #c084fc, #e9b5fb);
+  }
 }

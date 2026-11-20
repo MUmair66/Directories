@@ -3,7 +3,7 @@ import type { NeonDatabase } from "drizzle-orm/neon-serverless";
 import * as s from "../schema";
 import { DEFAULT_HOMEPAGE, DEFAULT_SITE } from "../../lib/settings-defaults";
 
-const BRAND = process.env.NEXT_PUBLIC_BRAND_NAME || "LocalFind";
+const BRAND = process.env.NEXT_PUBLIC_BRAND_NAME || "LocalSpecific";
 
 export async function seedContent(db: NeonDatabase<typeof s>) {
   await db

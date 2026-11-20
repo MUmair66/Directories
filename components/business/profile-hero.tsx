@@ -9,7 +9,7 @@ import { OpenUntil } from "@/components/listing/open-status";
 
 type Photo = { id: string; url: string; alt: string | null };
 
-const noPhoto = <span className="absolute inset-0 bg-gradient-to-br from-blue-900 via-slate-900 to-slate-950" aria-hidden />;
+const noPhoto = <span className="absolute inset-0 bg-gradient-to-br from-brand-deep via-ink to-slate-950" aria-hidden />;
 
 /**
  * Profile header: a photo strip (up to 3 photos) under a dark overlay with the name,
@@ -81,7 +81,7 @@ export function ProfileHero({
             <div className="flex flex-wrap items-center gap-2 text-sm">
               {claimed && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-0.5 font-semibold ring-1 ring-white/25 backdrop-blur">
-                  <ShieldCheck className="size-4 text-sky-300" aria-hidden /> Claimed
+                  <ShieldCheck className="size-4 text-purple-300" aria-hidden /> Claimed
                 </span>
               )}
               {verified && (

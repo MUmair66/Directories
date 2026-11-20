@@ -1,7 +1,8 @@
 export const NAV = [
+  { label: "Home", href: "/" },
   { label: "Categories", href: "/categories" },
-  { label: "States", href: "/states" },
+  { label: "Listings", href: "/search" },
   { label: "Top Pros", href: "/top-pros" },
-  { label: "Blog", href: "/blog" },
   { label: "Pricing", href: "/pricing" },
+  { label: "Blog", href: "/blog" },
 ];

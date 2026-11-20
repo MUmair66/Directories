@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Find, compare and contact trusted local businesses across the US.",
     start_url: "/",
     display: "standalone",
-    background_color: "#F8FAFC",
-    theme_color: "#2563EB",
+    background_color: "#F8F6FC",
+    theme_color: "#7B1FA2",
     icons: [{ src: "/icon", sizes: "512x512", type: "image/png" }],
   };
 }

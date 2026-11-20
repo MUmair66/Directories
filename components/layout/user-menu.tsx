@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Building2, Heart, LayoutDashboard, LogOut, Shield } from "lucide-react";
+import { Building2, Heart, LayoutDashboard, LogOut, Shield, UserRound } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/overlays";
@@ -20,14 +20,12 @@ export function UserMenu() {
 
   if (!data) {
     return (
-      <div className="flex items-center gap-1">
-        <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-          <Link href="/login">Log in</Link>
-        </Button>
-        <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
-          <Link href="/register">Sign up</Link>
-        </Button>
-      </div>
+      <Button asChild className="rounded-lg px-3 sm:px-4">
+        <Link href="/login" aria-label="Sign in">
+          <UserRound aria-hidden />
+          <span className="hidden sm:inline">Sign In</span>
+        </Link>
+      </Button>
     );
   }
 

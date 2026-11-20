@@ -16,7 +16,7 @@ export type EmailData = {
 };
 export type EmailTemplate = keyof EmailData;
 
-const brand = { color: "#2563EB", ink: "#0F172A", muted: "#64748B" };
+const brand = { color: "#7B1FA2", ink: "#14133A", muted: "#64748B" };
 
 function Layout({ preview, title, children, cta }: { preview: string; title: string; children: React.ReactNode; cta?: { label: string; url: string } }) {
   return (

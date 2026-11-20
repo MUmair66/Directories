@@ -1,4 +1,4 @@
-# LocalFind: US Local Business Directory
+# LocalSpecific: US Local Business Directory
 
 A production-ready local business directory for three audiences:
 
@@ -6,7 +6,7 @@ A production-ready local business directory for three audiences:
 - **Business owners** list, manage, verify and promote their businesses for free from a self-serve dashboard.
 - **Admins** moderate listings, claims, reviews and tickets, and manage categories, locations and SEO content.
 
-The brand name is a single setting: change `NEXT_PUBLIC_BRAND_NAME` (default `LocalFind`) to rename the product everywhere.
+The brand name is a single setting: change `NEXT_PUBLIC_BRAND_NAME` (default `LocalSpecific`) to rename the product everywhere.
 
 ## Stack
 

@@ -19,14 +19,19 @@ export function BusinessCard({ b, layout = "grid", showDistance = false, priorit
     <article
       data-business-id={b.id}
       className={cn(
-        "group relative flex overflow-hidden rounded-lg border border-border bg-card shadow-card transition-shadow duration-200 ease-out hover:shadow-card-hover",
+        "group relative flex overflow-hidden rounded-xl border border-border bg-card shadow-card transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-card-hover",
         layout === "grid" ? "flex-col" : "flex-col sm:flex-row",
       )}
     >
       <div className={cn("relative", layout === "grid" ? "aspect-[16/9]" : "aspect-[16/9] sm:aspect-auto sm:w-56 sm:shrink-0")}>
         <BusinessCover name={name} src={b.bannerUrl} className="absolute inset-0" priority={priority} sizes={layout === "grid" ? "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" : "224px"} />
         <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
-          {b.featured && <Badge className="bg-primary text-white">Featured</Badge>}
+          {b.verified && (
+            <Badge className="bg-primary/95 text-white shadow-sm backdrop-blur">
+              <BadgeCheck aria-hidden /> Verified
+            </Badge>
+          )}
+          {b.featured && <Badge className="bg-white text-primary shadow-sm">Featured</Badge>}
           {isNew && <Badge className="bg-white text-ink">New</Badge>}
         </div>
         <SaveButton businessId={b.id} className="absolute right-3 top-3 z-10" />
@@ -42,7 +47,11 @@ export function BusinessCard({ b, layout = "grid", showDistance = false, priorit
               </Link>
               {b.verified && <BadgeCheck className="size-4 shrink-0 text-primary" aria-label="Verified" />}
             </h3>
-            {b.categoryName && <p className="truncate text-sm text-muted-foreground">{decodeEntities(b.categoryName)}</p>}
+            {b.categoryName && (
+              <p className="mt-1">
+                <span className="inline-flex max-w-full items-center truncate rounded-full bg-secondary px-2 py-0.5 text-xs font-semibold text-secondary-foreground">{decodeEntities(b.categoryName)}</span>
+              </p>
+            )}
           </div>
         </div>
 

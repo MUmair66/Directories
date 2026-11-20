@@ -14,7 +14,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
             <h1 style={{ fontSize: 28, margin: "0 0 12px" }}>Something went wrong</h1>
             <p style={{ color: "#64748B", margin: "0 0 24px" }}>We hit an unexpected problem. Please try again in a moment.</p>
             <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
-              <button onClick={reset} style={{ background: "#2563EB", color: "#fff", border: 0, borderRadius: 8, padding: "12px 20px", fontWeight: 600, cursor: "pointer" }}>
+              <button onClick={reset} style={{ background: "#7B1FA2", color: "#fff", border: 0, borderRadius: 8, padding: "12px 20px", fontWeight: 600, cursor: "pointer" }}>
                 Try again
               </button>
               {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}

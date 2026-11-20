@@ -2,7 +2,7 @@ import { initials } from "@/lib/text";
 import { cn } from "@/lib/utils";
 import { SafeImage } from "@/components/ui/safe-image";
 
-const PALETTE = ["#2563EB", "#1E3A8A", "#0E7490", "#7C3AED", "#BE185D", "#B45309", "#15803D", "#0F766E"];
+const PALETTE = ["#7B1FA2", "#14133A", "#0E7490", "#7C3AED", "#BE185D", "#B45309", "#15803D", "#0F766E"];
 
 function colorFor(name: string) {
   let h = 0;
@@ -40,7 +40,7 @@ export function BusinessAvatar({ name, src, size = 56, className, priority }: { 
 /** Banner/thumbnail with an initials panel when there's no photo or it fails to load. Never a blank box. */
 export function BusinessCover({ name, src, className, sizes, priority }: { name: string; src?: string | null; className?: string; sizes?: string; priority?: boolean }) {
   const panel = (
-    <div className="absolute inset-0 flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${colorFor(name)}, #1E3A8A)` }} aria-hidden>
+    <div className="absolute inset-0 flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${colorFor(name)}, #4A148C)` }} aria-hidden>
       <span className="font-heading text-4xl font-bold text-white/90">{initials(name)}</span>
     </div>
   );

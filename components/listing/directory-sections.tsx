@@ -65,7 +65,7 @@ export function ListingCta({ place }: { place: string }) {
     <section className="flex flex-col items-center justify-between gap-4 rounded-lg bg-primary px-6 py-8 text-center text-white sm:flex-row sm:text-left">
       <div>
         <h2 className="text-xl font-bold">Your business not here?</h2>
-        <p className="text-blue-100">Get a free listing and reach customers in {place}.</p>
+        <p className="text-purple-100">Get a free listing and reach customers in {place}.</p>
       </div>
       <Button asChild variant="white" size="lg">
         <Link href="/dashboard/businesses/new">Get a free listing</Link>

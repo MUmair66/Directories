@@ -38,7 +38,7 @@ export function Gallery({ photos, name }: { photos: Photo[]; name: string }) {
                 className="object-cover transition-transform duration-200 group-hover:scale-105"
                 placeholder={p.blurDataUrl ? "blur" : "empty"}
                 blurDataURL={p.blurDataUrl ?? undefined}
-                fallback={<span className="absolute inset-0 bg-gradient-to-br from-primary to-blue-900" aria-hidden />}
+                fallback={<span className="absolute inset-0 bg-gradient-to-br from-primary to-brand-deep" aria-hidden />}
               />
             </button>
           </li>

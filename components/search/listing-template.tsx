@@ -173,10 +173,10 @@ export async function ListingTemplate({
           </ResultsHoverProvider>
         )}
 
-        <div className="mt-4 flex flex-col items-center justify-between gap-4 rounded-xl bg-gradient-to-r from-primary to-primary-dark px-6 py-8 text-center text-white dark:to-blue-900 sm:flex-row sm:text-left">
+        <div className="mt-4 flex flex-col items-center justify-between gap-4 rounded-xl bg-gradient-to-r from-primary to-primary-dark px-6 py-8 text-center text-white dark:to-brand-deep sm:flex-row sm:text-left">
           <div>
             <h2 className="text-xl font-bold">Own a business in this list?</h2>
-            <p className="text-blue-100">Claim or add your listing free and start getting calls and messages from local customers.</p>
+            <p className="text-purple-100">Claim or add your listing free and start getting calls and messages from local customers.</p>
           </div>
           <Button asChild variant="white" size="lg">
             <Link href="/dashboard/businesses/new">List your business</Link>

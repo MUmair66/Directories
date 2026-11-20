@@ -7,7 +7,7 @@ const icon = L.divIcon({
   className: "",
   iconSize: [32, 42],
   iconAnchor: [16, 42],
-  html: '<svg width="32" height="42" viewBox="0 0 28 36" aria-hidden="true"><path d="M14 0C6.3 0 0 6.1 0 13.7 0 24 14 36 14 36s14-12 14-22.3C28 6.1 21.7 0 14 0Z" fill="#2563EB"/><circle cx="14" cy="13.5" r="5.5" fill="#fff"/></svg>',
+  html: '<svg width="32" height="42" viewBox="0 0 28 36" aria-hidden="true"><path d="M14 0C6.3 0 0 6.1 0 13.7 0 24 14 36 14 36s14-12 14-22.3C28 6.1 21.7 0 14 0Z" fill="#7B1FA2"/><circle cx="14" cy="13.5" r="5.5" fill="#fff"/></svg>',
 });
 
 export default function PinMap({ lat, lng, name }: { lat: number; lng: number; name: string }) {

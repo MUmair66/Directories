@@ -258,7 +258,7 @@ export function ActiveFilters({ labels }: { labels: Record<string, string> }) {
   return (
     <div className="flex flex-wrap items-center gap-2" aria-label="Active filters">
       {keys.map((k) => (
-        <button key={k} type="button" onClick={() => update({ [k]: null })} className="inline-flex h-8 items-center gap-1.5 rounded-full bg-secondary px-3 text-sm font-medium text-secondary-foreground hover:bg-blue-100 dark:hover:bg-blue-950">
+        <button key={k} type="button" onClick={() => update({ [k]: null })} className="inline-flex h-8 items-center gap-1.5 rounded-full bg-secondary px-3 text-sm font-medium text-secondary-foreground hover:bg-purple-100 dark:hover:bg-purple-950">
           {text(k)}
           <X className="size-3.5" aria-label="Remove filter" />
         </button>

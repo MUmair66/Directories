@@ -10,11 +10,11 @@ export function Sparkline({ data, label }: { data: number[]; label: string }) {
         <AreaChart data={points} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
           <defs>
             <linearGradient id={`spark-${label.replace(/\W/g, "")}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#2563EB" stopOpacity={0.3} />
-              <stop offset="100%" stopColor="#2563EB" stopOpacity={0} />
+              <stop offset="0%" stopColor="#7B1FA2" stopOpacity={0.3} />
+              <stop offset="100%" stopColor="#7B1FA2" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <Area type="monotone" dataKey="v" stroke="#2563EB" strokeWidth={2} fill={`url(#spark-${label.replace(/\W/g, "")})`} isAnimationActive={false} />
+          <Area type="monotone" dataKey="v" stroke="#7B1FA2" strokeWidth={2} fill={`url(#spark-${label.replace(/\W/g, "")})`} isAnimationActive={false} />
         </AreaChart>
       </ResponsiveContainer>
     </div>

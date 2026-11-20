@@ -93,7 +93,7 @@ export function CategoryPicker({ id, options, value, onChange, max = 5, invalid 
             <li key={cid} className="inline-flex items-center gap-1 rounded-full bg-secondary py-1 pl-3 pr-1 text-sm text-secondary-foreground">
               {nameOf.get(cid) ?? "Unknown"}
               {i === 0 && <span className="text-xs opacity-70">(primary)</span>}
-              <button type="button" onClick={() => toggle(cid)} className="rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-900" aria-label={`Remove ${nameOf.get(cid)}`}>
+              <button type="button" onClick={() => toggle(cid)} className="rounded-full p-0.5 hover:bg-purple-200 dark:hover:bg-purple-900" aria-label={`Remove ${nameOf.get(cid)}`}>
                 <X className="size-3.5" />
               </button>
             </li>

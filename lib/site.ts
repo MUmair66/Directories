@@ -1,5 +1,5 @@
 /** Brand constants. Change NEXT_PUBLIC_BRAND_NAME to rename the product everywhere. */
-export const BRAND_NAME = process.env.NEXT_PUBLIC_BRAND_NAME || "LocalFind";
+export const BRAND_NAME = process.env.NEXT_PUBLIC_BRAND_NAME || "LocalSpecific";
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
 export const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@example.com";
 

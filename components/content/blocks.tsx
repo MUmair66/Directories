@@ -130,7 +130,7 @@ export function ListYourBusinessCta() {
   return (
     <aside className="rounded-xl bg-primary p-8 text-white">
       <h2 className="text-2xl font-bold">Own a local business?</h2>
-      <p className="mt-2 text-blue-100">List it for free and start getting calls, messages and reviews from customers near you.</p>
+      <p className="mt-2 text-purple-100">List it for free and start getting calls, messages and reviews from customers near you.</p>
       <Link href="/dashboard/businesses/new" className="mt-5 inline-flex h-11 items-center rounded-md bg-white px-5 text-sm font-semibold text-ink hover:bg-slate-100">
         List your business free
       </Link>
